@@ -1,0 +1,6 @@
+terraform/env-dev/kubeconfig*
+terraform/env-dev/.terraform/*
+terraform/env-dev/.terraform*
+terraform/env-dev/terraform.tfstate*
+
+
