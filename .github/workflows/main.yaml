@@ -27,8 +27,8 @@ jobs:
       - name: Build and tag Docker image
         run: |
           docker build -t ${{ vars.ECR_API_REPO_URL }}:latest ./api
-          docker tag ${{ vars.ECR_API_REPO_URL }}:latest ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_API_REPO_URL }}:latest
+          docker tag ${{ vars.ECR_API_REPO_URL }}:latest ${{ steps.login-ecr.outputs.registry }}/lwt-ecr-dev-api:latest
 
       - name: Push Docker image to Amazon ECR
         run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_API_REPO_URL }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/lwt-ecr-dev-api:latest
