@@ -1,3 +1,8 @@
+resource "aws_key_pair" "my_key_pair" {
+  key_name   = "laurie-key-pair"
+  public_key = file("C:/Users/Laurie/.ssh/id_rsa.pub")
+}
+
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -41,7 +46,7 @@ module "eks-kubeconfig" {
 
   depends_on = [module.eks]
   cluster_id =  module.eks.cluster_id
-  }
+}
 
 resource "local_file" "kubeconfig" {
   content  = module.eks-kubeconfig.kubeconfig
@@ -58,7 +63,9 @@ module "eks" {
 
   cluster_name    = "${local.cluster_name}"
   cluster_version = "1.24"
-  subnet_ids      = module.vpc.private_subnets
+  subnet_ids      = module.vpc.public_subnets
+  cluster_endpoint_public_access = true
+
 
   vpc_id = module.vpc.vpc_id
 
@@ -69,11 +76,70 @@ module "eks" {
       min_capacity     = 1
 
       instance_type = "t3.small"
+
+      subnet_ids = module.vpc.public_subnets
     }
+  }
+}
+
+
+
+# https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/
+data "aws_iam_policy" "ebs_csi_policy" {
+  arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
+module "irsa-ebs-csi" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
+  version = "4.7.0"
+
+  create_role                   = true
+  role_name                     = "AmazonEKSTFEBSCSIRole-${local.cluster_name}"
+  provider_url                  = module.eks.oidc_provider
+  role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
+  oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+}
+
+resource "aws_eks_addon" "ebs-csi" {
+  cluster_name             = local.cluster_name
+  addon_name               = "aws-ebs-csi-driver"
+  addon_version            = "v1.5.2-eksbuild.1"
+  service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+  tags = {
+    "eks_addon" = "ebs-csi"
+    "terraform" = "true"
   }
 }
 
 
 resource "aws_ecr_repository" "ecr_repo" {
   name                 = "${var.project_name}-ecr-${var.env_name}-api"
+}
+
+data "terraform_remote_state" "eks_cluster" {
+  backend = "local"
+  config = {
+    path = "./terraform.tfstate"  # Replace with the path to your module's Terraform state file
+  }
+}
+
+
+// need to create an entry after the cluster is up to ensure the node group allows access inbound from the internet
+
+resource "aws_security_group_rule" "publicOnEKSNode" {
+  type              = "ingress"
+  from_port         = 30000
+  to_port           = 65535
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = data.terraform_remote_state.eks_cluster.outputs.node_security_group_id
+}
+
+resource "aws_security_group_rule" "publicOnEKSNodeEgress" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = data.terraform_remote_state.eks_cluster.outputs.node_security_group_id
 }
