@@ -1,0 +1,17 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: lwtdemo-cronjob
+  namespace: lwtdemo
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: lwtdemo-cron
+            image: account.dkr.ecr.us-west-1.amazonaws.com/lwt-ecr-dev-cron:latest
+            imagePullPolicy: Always
+            command: ["python", "/path/to/script.py"]  # Replace with the path to your Python script inside the container
+          restartPolicy: OnFailure

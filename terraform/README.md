@@ -17,7 +17,7 @@ You'll need a few accessories to make things work:
 
 i.e. via elevated terminal on PC `choco install terraform`
 
-* Kubectl
+* `kubectl` command line
 
 ## Run
 

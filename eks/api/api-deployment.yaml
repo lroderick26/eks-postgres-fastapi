@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-deployment
+  namespace: lwtdemo
+  labels:
+    app: fastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      containers:
+        - name: fastapi-container
+          image: account.dkr.ecr.us-west-1.amazonaws.com/lwt-ecr-dev-api:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            - name: POSTGRES_HOST
+              value: postgres-service
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: lwtdemo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  fastapi-svc
+  namespace: lwtdemo
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+  type: NodePort
+  selector:
+    app: fastapi
