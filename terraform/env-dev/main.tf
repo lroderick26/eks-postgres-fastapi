@@ -116,13 +116,17 @@ resource "aws_ecr_repository" "ecr_repo" {
   name                 = "${var.project_name}-ecr-${var.env_name}-api"
 }
 
-data "terraform_remote_state" "eks_cluster" {
-  backend = "local"
-  config = {
-    path = "./terraform.tfstate"  # Replace with the path to your module's Terraform state file
-  }
+resource "aws_ecr_repository" "ecr_repo_cron" {
+  name                 = "${var.project_name}-ecr-${var.env_name}-cron"
 }
 
+
+//data "terraform_remote_state" "eks_cluster" {
+//  backend = "local"
+//  config = {
+//    path = "./terraform.tfstate"  # Replace with the path to your module's Terraform state file
+//  }
+//}
 
 // need to create an entry after the cluster is up to ensure the node group allows access inbound from the internet
 
@@ -132,7 +136,9 @@ resource "aws_security_group_rule" "publicOnEKSNode" {
   to_port           = 65535
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = data.terraform_remote_state.eks_cluster.outputs.node_security_group_id
+//  security_group_id = data.terraform_remote_state.eks_cluster.outputs.node_security_group_id
+  security_group_id = "sg-0ae023ffcea1c0b42"
+
 }
 
 resource "aws_security_group_rule" "publicOnEKSNodeEgress" {
@@ -141,5 +147,15 @@ resource "aws_security_group_rule" "publicOnEKSNodeEgress" {
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = data.terraform_remote_state.eks_cluster.outputs.node_security_group_id
+//  security_group_id = data.terraform_remote_state.eks_cluster.outputs.node_security_group_id
+  security_group_id = "sg-0ae023ffcea1c0b42"
+}
+
+resource "aws_s3_bucket" "script_bucket" {
+  bucket = "lwtdemo"
+}
+
+resource "aws_cloudwatch_log_group" "cloudwatch_retention" {
+  name                 = module.eks.cloudwatch_log_group_name
+  retention_in_days    = 1
 }

@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import requests
 import io
 import re
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 BASE_URL = 'http://www.imsdb.com'
 SCRIPTS_DIR = './'
@@ -14,8 +14,8 @@ SCRIPTS_BUCKET = 'lwtdemo'
 POSTGRES_URI = os.getenv("POSTGRES_URI")
 
 session = boto3.Session(
-    aws_access_key_id=os.getenv(""),
-    aws_secret_access_key=os.getenv("...")
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
 )
 
 s3 = session.resource("s3")
@@ -23,13 +23,13 @@ s3 = session.resource("s3")
 bucket = s3.create_bucket(Bucket=SCRIPTS_BUCKET)
 
 engine = create_engine(POSTGRES_URI)
+conn = engine.connect()
 
-with engine.connect() as con:
-    files = ['create_database.sql','create_schema.sql','create_table.sql']
-    for file in files:
-        with open(f"./sql/{file}") as file:
-            query = text(file.read())
-            con.execute(query)
+files = ['create_database.sql','create_schema.sql', 'create_table.sql']
+for file in files:
+    with open(f"./sql/{file}") as file:
+        query = text(file.read())
+        conn.execute(query)
 
 
 classifier = pipeline("text-classification", model='bhadresh-savani/distilbert-base-uncased-emotion',
@@ -121,21 +121,23 @@ if __name__ == "__main__":
                 sentiments.append((sentence, sentiment))
             # insert into the database
             for sentence, sentiment in sentiments:
-                sadness_score = [s['score'] for s in sentiment if s['label'] == 'sadness']
-                joy_score = [s['score'] for s in sentiment if s['label'] == 'joy']
-                love_score = [s['score'] for s in sentiment if s['label'] == 'love']
-                anger_score = [s['score'] for s in sentiment if s['label'] == 'anger']
-                fear_score = [s['score'] for s in sentiment if s['label'] == 'fear']
-                surprise_score = [s['score'] for s in sentiment if s['label'] == 'surprise']
-                insert_statement = script_table.insert().values(title=title,
-                                                                date_info=date_info,
-                                                                sentence=sentence,
-                                                                sentiment=sentiment,
-                                                                sadness=sadness_score,
-                                                                joy=joy_score,
-                                                                love=love_score,
-                                                                anger=anger_score,
-                                                                fear=fear_score,
-                                                                surprise=surprise_score)
+                sadness_score = float([s['score'] for s in sentiment if s['label'] == 'sadness'][0])
+                joy_score = float([s['score'] for s in sentiment if s['label'] == 'joy'][0])
+                love_score = float([s['score'] for s in sentiment if s['label'] == 'love'][0])
+                anger_score =float([s['score'] for s in sentiment if s['label'] == 'anger'][0])
+                fear_score = float([s['score'] for s in sentiment if s['label'] == 'fear'][0])
+                surprise_score = float([s['score'] for s in sentiment if s['label'] == 'surprise'][0])
+                insert_statement = "INSERT INTO script_records (title, date_info, sentence, sentiment, sadness, joy, love, anger, fear, suprise) VALUES (:title, :date_info, :sentence, :sentiment, :sadness, :joy, :love, :anger, :fear, :suprise) "
+                params = {'title': title,
+                        'date_info': date_info,
+                        'sentence': sentence,
+                        'sentiment': sentiment,
+                        'sadness': sadness_score,
+                        'joy': joy_score,
+                        'love': love_score,
+                        'anger': anger_score,
+                        'fear': fear_score,
+                        'surprise': surprise_score}
+                conn.execute(insert_statement, **params)
 
 
