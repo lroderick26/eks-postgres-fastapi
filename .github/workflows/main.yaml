@@ -61,17 +61,17 @@ jobs:
       - name: Push Docker image to Amazon ECR
         run: |
           docker push ${{ steps.login-ecr.outputs.registry }}/lwt-ecr-dev-api:latest
-
-      - name: EKS Deploy
-        id: deploy-image
-        uses: actions-hub/kubectl@master
-        env:
-          KUBE_CONFIG_DATA: ${{ secrets.AWS_KUBECONFIG_DATA }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-west-1
-        with:
-          args: patch deployment -n ${{ steps.set_deployment_info.outputs.DEPLOY_NS }} ${{ steps.set_deployment_info.outputs.DEPLOYMENT_NAME }} -p ${{ steps.set_deployment_info.outputs.PATCH_STR }}
+#
+#      - name: EKS Deploy
+#        id: deploy-image
+#        uses: actions-hub/kubectl@master
+#        env:
+#          KUBE_CONFIG_DATA: ${{ secrets.AWS_KUBECONFIG_DATA }}
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          AWS_REGION: us-west-1
+#        with:
+#          args: patch deployment -n ${{ steps.set_deployment_info.outputs.DEPLOY_NS }} ${{ steps.set_deployment_info.outputs.DEPLOYMENT_NAME }} -p ${{ steps.set_deployment_info.outputs.PATCH_STR }}
 
       - name: Build and tag Docker cron image
         run: |
