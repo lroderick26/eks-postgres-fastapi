@@ -13,6 +13,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Get the version
+        id: get_version
+        run: |
+          VERSION=`echo -n ${{github.ref}} | sed -e 's/.*\///'`
+          echo ::set-output name=VERSION::${VERSION}  ## Only use the last part of the tag/branch name
+
+      - name: Setup deployment variables
+        id: set_deployment_info
+        run: |
+          VERSION=`echo ${{steps.get_version.outputs.VERSION}}`
+          ACTOR=${{ github.actor }}
+          COMMIT_SHA=${{ github.sha }}
+          PATCH_STR="{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"last_deploy_date\":\"`date +'%s'`\",\"actor\":\"$ACTOR\",\"commit_sha\":\"$COMMIT_SHA\"}}}}}"
+          DEPLOYMENT_NAME="lwtdemo-cron"
+          case "$VERSION" in
+             "main") DEPLOY_NS="lwtdemo"
+             ;;
+             "stage") DEPLOY_NS="stage"
+             ;;
+             "prod") DEPLOY_NS="prod"
+             ;;
+           *)
+           echo "Unknown branch"
+          ;;
+          esac
+          echo ::set-output name=DEPLOYMENT_NAME::${DEPLOYMENT_NAME}
+          echo ::set-output name=DEPLOY_NS::${DEPLOY_NS}
+          echo ::set-output name=PATCH_STR::${PATCH_STR}
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -32,3 +61,23 @@ jobs:
       - name: Push Docker image to Amazon ECR
         run: |
           docker push ${{ steps.login-ecr.outputs.registry }}/lwt-ecr-dev-api:latest
+
+      - name: Build and tag Docker cron image
+        run: |
+          docker build -t ${{ vars.ECR_CRON_REPO_URL }}:latest ./cronjob
+          docker tag ${{ vars.ECR_CRON_REPO_URL }}:latest ${{ steps.login-ecr.outputs.registry }}/lwt-ecr-dev-cron:latest
+
+      - name: Push Docker cron image to Amazon ECR
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry }}/lwt-ecr-dev-cron:latest
+
+      - name: EKS Deploy
+        id: deploy-image
+        uses: gane5hvarma/kubectl-actions@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.AWS_KUBECONFIG_DATA }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        with:
+          args: patch deployment -n ${{ steps.set_deployment_info.outputs.DEPLOY_NS }} ${{ steps.set_deployment_info.outputs.DEPLOYMENT_NAME }} -p ${{ steps.set_deployment_info.outputs.PATCH_STR }}

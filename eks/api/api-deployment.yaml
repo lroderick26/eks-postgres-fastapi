@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: fastapi-container
-          image: account.dkr.ecr.us-west-1.amazonaws.com/lwt-ecr-dev-api:latest
+          image: 781127853046.dkr.ecr.us-west-1.amazonaws.com/lwt-ecr-dev-api:latest
           ports:
             - containerPort: 8000
           env:
