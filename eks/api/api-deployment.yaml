@@ -31,6 +31,11 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: password
+            - name: POSTGRES_URI
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: postgres_uri
             - name: POSTGRES_HOST
               value: postgres-service
             - name: POSTGRES_PORT
