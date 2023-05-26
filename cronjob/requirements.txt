@@ -1,6 +1,6 @@
 beautifulsoup4==4.12.2
 SQLAlchemy==2.0.15
-psycopg2==2.9.6
+psycopg2-binary==2.9.6
 transformers==4.29.2
 boto3==1.26.137
 tensorflow==2.12.0
