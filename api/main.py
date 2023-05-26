@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from sqlalchemy import create_engine
-from pydantic import BaseModel, Field
+import os
 
 app = FastAPI()
-engine = create_engine(POSTGRES_URI)
+engine = create_engine(os.getenv("POSTGRES_URI"))
 conn = engine.connect()
 
 @app.get("/")
