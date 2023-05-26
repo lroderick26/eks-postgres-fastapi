@@ -1,10 +1,11 @@
 from fastapi import FastAPI
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+from sqlalchemy.ext.asyncio import create_async_engine
 import os
 
 app = FastAPI()
-engine = create_engine(os.getenv("POSTGRES_URI"))
-conn = engine.connect()
+engine = create_async_engine(os.getenv("POSTGRES_URI"))
+# conn = engine.connect()
 
 @app.get("/")
 def read_root():
@@ -12,7 +13,8 @@ def read_root():
 
 
 @app.get("/data")
-def get_data():
-    sql_statement = "SELECT * FROM lwtdemo.script_records"
-    returned_data = conn.execute(sql_statement).fetchall()
-    return returned_data
+async def get_data():
+    async with engine.connect() as conn:
+        sql_statement = text("""SELECT * FROM lwtdemo.script_records;""")
+        result = await conn.execute(sql_statement)
+    return result
