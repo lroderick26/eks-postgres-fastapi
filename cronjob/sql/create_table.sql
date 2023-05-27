@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS script_records (
+CREATE TABLE IF NOT EXISTS lwtdemo.script_records (
 id SERIAL PRIMARY KEY,
 title CHAR(100),
 date_info CHAR(100),

@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  cron:
+    build: .
+    environment:
+      POSTGRES_URI: "postgresql+psycopg2://postgres:password@db:5432/lwtdemo"
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: "g"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
