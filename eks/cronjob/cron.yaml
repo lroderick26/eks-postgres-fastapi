@@ -1,16 +1,70 @@
-apiVersion: batch/v1beta1
-kind: CronJob
+#apiVersion: batch/v1beta1
+#kind: CronJob
+#metadata:
+#  name: lwtdemo-cronjob
+#  namespace: lwtdemo
+#spec:
+#  schedule: "12 4 * * *"
+#  jobTemplate:
+#    spec:
+#      template:
+#        spec:
+#          containers:
+#          - name: lwtdemo-cron
+#            image: 781127853046.dkr.ecr.us-west-1.amazonaws.com/lwt-ecr-dev-cron:latest
+#            imagePullPolicy: Always
+#            env:
+#              - name: POSTGRES_USER
+#                valueFrom:
+#                  secretKeyRef:
+#                    name: postgres-secret
+#                    key: username
+#              - name: POSTGRES_PASSWORD
+#                valueFrom:
+#                  secretKeyRef:
+#                    name: postgres-secret
+#                    key: password
+#              - name: POSTGRES_URI
+#                valueFrom:
+#                  secretKeyRef:
+#                    name: postgres-secret
+#                    key: postgres_uri
+#              - name: POSTGRES_HOST
+#                value: postgres-service
+#              - name: POSTGRES_PORT
+#                value: "5432"
+#              - name: POSTGRES_DB
+#                value: lwtdemo
+#          restartPolicy: OnFailure
+#---
+
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: lwtdemo-cronjob
+  name: lwtdemo-python-job
   namespace: lwtdemo
 spec:
-  schedule: "@once"
-  jobTemplate:
+  template:
     spec:
-      template:
-        spec:
-          containers:
-          - name: lwtdemo-cron
-            image: 781127853046.dkr.ecr.us-west-1.amazonaws.com/lwt-ecr-dev-cron:latest
-            imagePullPolicy: Always
-          restartPolicy: OnFailure
+      containers:
+        - name: lwtdemo-job
+          image: 781127853046.dkr.ecr.us-west-1.amazonaws.com/lwt-ecr-dev-cron:latest
+          command: ["python", "cronjob.py"]
+          env:
+            - name: POSTGRES_URI
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: postgres_uri
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: aws_access_id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: aws_secret_access_key
+      restartPolicy: Never
+  backoffLimit: 0

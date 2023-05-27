@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: lwtdemo
+    networks:
+      - my-network
+
+  app:
+    build: .
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    environment:
+      POSTGRES_URI: "postgresql+psycopg2://postgres:password@db:5432/lwtdemo"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true

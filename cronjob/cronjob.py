@@ -7,46 +7,53 @@ import requests
 import io
 import re
 from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 
 BASE_URL = 'http://www.imsdb.com'
-SCRIPTS_DIR = './'
-SCRIPTS_BUCKET = 'lwtdemo'
-POSTGRES_URI = os.getenv("POSTGRES_URI")
+SCRIPTS_DIR = ''
+SCRIPTS_BUCKET = 'lwtdemo' # created by our terraform script
+POSTGRES_URI = os.getenv("POSTGRES_URI") # already running in cluster
 
+# Create a boto3 session for accessing AWS resources
 session = boto3.Session(
     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
     aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
 )
-
 s3 = session.resource("s3")
 
-bucket = s3.create_bucket(Bucket=SCRIPTS_BUCKET)
+# Connect and instantialize database
+engine = create_engine(os.getenv("POSTGRES_URI"))
 
-engine = create_engine(POSTGRES_URI)
 conn = engine.connect()
+conn.autocommit = True
 
-files = ['create_database.sql','create_schema.sql', 'create_table.sql']
+files = ['create_schema.sql', 'create_table.sql']
+
 for file in files:
-    with open(f"./sql/{file}") as file:
-        query = text(file.read())
+    with open(f"./sql/{file}") as asql:
+        query = text(asql.read())
+        # query = asql.read()
+        print(query)
         conn.execute(query)
+        conn.commit()
+
 
 
 classifier = pipeline("text-classification", model='bhadresh-savani/distilbert-base-uncased-emotion',
-                          return_all_scores=True)
+                          top_k=None)
 
-def clean_script(text):
-    text = text.replace('Back to IMSDb', '')
-    text = text.replace('''<b><!--
+def clean_script(input_text):
+    input_text = input_text.replace('Back to IMSDb', '')
+    input_text = input_text.replace('''<b><!--
 </b>if (window!= top)
 top.location.href=location.href
 <b>// -->
 </b>
 ''', '')
-    text = text.replace('''          Scanned by http://freemoviescripts.com
+    input_text = input_text.replace('''          Scanned by http://freemoviescripts.com
           Formatting by http://simplyscripts.home.att.net
 ''', '')
-    return text.replace(r'\r', '')
+    return input_text.replace(r'\r', '')
 
 
 def get_script(relative_link):
@@ -70,6 +77,7 @@ def get_script(relative_link):
         script_text = clean_script(script_text)
         # try to get the year too
         btags = front_soup.findAll("b")
+        date_info = None
         for tag in btags:
             if tag.text == "Script Date":
                 date_info = tag.next_sibling
@@ -104,7 +112,7 @@ if __name__ == "__main__":
     paragraphs = soup.find_all('p')
     print(len(paragraphs))
     # print(paragraphs)
-    for p in paragraphs[1:2]:
+    for p in paragraphs[1:]:
         relative_link = p.a['href']
         title, script, date_info = get_script(relative_link)
         if not script:
@@ -128,6 +136,7 @@ if __name__ == "__main__":
                 fear_score = float([s['score'] for s in sentiment if s['label'] == 'fear'][0])
                 surprise_score = float([s['score'] for s in sentiment if s['label'] == 'surprise'][0])
                 insert_statement = "INSERT INTO script_records (title, date_info, sentence, sentiment, sadness, joy, love, anger, fear, suprise) VALUES (:title, :date_info, :sentence, :sentiment, :sadness, :joy, :love, :anger, :fear, :suprise) "
+                print(insert_statement)
                 params = {'title': title,
                         'date_info': date_info,
                         'sentence': sentence,

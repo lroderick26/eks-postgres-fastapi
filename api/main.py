@@ -3,10 +3,12 @@ from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
-from .db import SessionLocal, engine
-
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+import os
 app = FastAPI()
 
 
@@ -18,9 +20,15 @@ app.add_middleware(
     allow_credentials=True,
 )
 
+SQLALCHEMY_DATABASE_URL = os.getenv("POSTGRES_URI")
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+
 
 def get_db():
     try:
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        Base = declarative_base()
         db = SessionLocal()
         yield db
     finally:
@@ -35,6 +43,6 @@ def main():
 
 @app.get("/data")
 def show_records(db: Session = Depends(get_db)):
-    sql_statement = text("""SELECT * FROM lwtdemo.script_records;""")
-    records = db.query(sql_statement).all()
+    sql_statement = text("""SELECT id, title, date_info, sentiment, sentence, sadness_score, joy_score, love_score, anger_score, fear_score, surprise_score FROM lwtdemo.script_records;""")
+    records = db.execute(sql_statement)
     return records
