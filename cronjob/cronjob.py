@@ -161,7 +161,7 @@ if __name__ == "__main__":
             # sentiments = [( "this is a test.", [{'love': 0.12345, 'sadness': 0.123}])]
             ## end Test
             # insert into the database
-            for sentence, sentiment in sentiments:
+            for sentence, sentiment in sentiments[1:]:
                 print(sentiment)
                 sadness_score = float(
                     [s["score"] for s in sentiment[0] if s["label"] == "sadness"][0]
