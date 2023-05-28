@@ -141,7 +141,7 @@ if __name__ == "__main__":
     soup = BeautifulSoup(html, "html.parser")
     paragraphs = soup.find_all("p")
     print(len(paragraphs))
-    for p in paragraphs[9:10]:
+    for p in paragraphs:
         relative_link = p.a["href"]
         title, script, date_info = get_script(relative_link)
         if not script:
@@ -157,7 +157,9 @@ if __name__ == "__main__":
             for sentence in sentences:
                 sentiment = run_sentiment_analysis(sentence)
                 sentiments.append((sentence, sentiment))
-            sentiments = [( "this is a test.", [{'love': 0.12345, 'sadness': 0.123}])]
+            ## Test
+            # sentiments = [( "this is a test.", [{'love': 0.12345, 'sadness': 0.123}])]
+            ## end Test
             # insert into the database
             for sentence, sentiment in sentiments:
                 print(sentiment)
