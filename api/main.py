@@ -45,5 +45,5 @@ def main():
 def show_records(db: Session = Depends(get_db)):
     sql_statement = text("""SELECT id, title, date_info, sentiment, sentence, sadness_score, joy_score, love_score, anger_score, fear_score, surprise_score FROM lwtdemo.script_records;""")
     records = db.execute(sql_statement)
-    rows = [dict(row) for row in records]
+    rows = [row._asdict() for row in records]
     return rows
