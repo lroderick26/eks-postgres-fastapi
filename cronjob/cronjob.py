@@ -12,7 +12,7 @@ import os
 import json
 import re
 import io
-
+from decimal import Decimal
 from urllib.parse import quote
 from transformers import pipeline
 import boto3
@@ -163,22 +163,22 @@ if __name__ == "__main__":
             # insert into the database
             for sentence, sentiment in sentiments: # starting from 0 causes error
                 print(sentiment)
-                sadness_score = float(
+                sadness_score = Decimal(
                     [s["score"] for s in sentiment[0] if s["label"] == "sadness"][0]
                 )
-                joy_score = float(
+                joy_score = Decimal(
                     [s["score"] for s in sentiment[0] if s["label"] == "joy"][0]
                 )
-                love_score = float(
+                love_score = Decimal(
                     [s["score"] for s in sentiment[0] if s["label"] == "love"][0]
                 )
-                anger_score = float(
+                anger_score = Decimal(
                     [s["score"] for s in sentiment[0] if s["label"] == "anger"][0]
                 )
-                fear_score = float(
+                fear_score = Decimal(
                     [s["score"] for s in sentiment[0] if s["label"] == "fear"][0]
                 )
-                surprise_score = float(
+                surprise_score = Decimal(
                     [s["score"] for s in sentiment[0] if s["label"] == "surprise"][0]
                 )
                 sentence = sentence.replace(
@@ -204,7 +204,7 @@ if __name__ == "__main__":
                     sentiment, sadness_score, joy_score, love_score, 
                     anger_score, fear_score, surprise_score) 
                     VALUES ('%s', '%s', '%s', '%s', 
-                    %d, %d, %d, %d, %d, %d)"""
+                    %s, %s, %s, %s, %s, %s)"""
                     % (
                         title,
                         date_info,
