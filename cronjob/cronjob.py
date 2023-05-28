@@ -141,7 +141,7 @@ if __name__ == "__main__":
     soup = BeautifulSoup(html, "html.parser")
     paragraphs = soup.find_all("p")
     print(len(paragraphs))
-    for p in paragraphs[1:]:
+    for p in paragraphs[9:10]:
         relative_link = p.a["href"]
         title, script, date_info = get_script(relative_link)
         if not script:
@@ -184,6 +184,9 @@ if __name__ == "__main__":
                 sentence = sentence.replace(
                     "'", "''"
                 )  # just in case there are single quotes
+                title = title.replace(
+                    "'", "''"
+                )
                 ## Test begin
                 # title = "test"
                 # sentence = "this is a test."
@@ -217,3 +220,4 @@ if __name__ == "__main__":
                 )
                 print(insert_statement)
                 conn.execute(insert_statement)
+                conn.commit()
