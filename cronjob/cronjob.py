@@ -92,7 +92,7 @@ def get_script(relative_link):
         script_link = front_soup.find_all("p", align="center")[0].a["href"]
     except IndexError:
         print("%s has no script :(" % tail)
-        return None, None
+        return None, None, None
     if script_link.endswith(".html") and "/scripts/" in script_link:
         title = script_link.split("/")[-1].split(" Script")[0]
         script_url = BASE_URL + script_link
