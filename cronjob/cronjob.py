@@ -141,7 +141,7 @@ if __name__ == "__main__":
     soup = BeautifulSoup(html, "html.parser")
     paragraphs = soup.find_all("p")
     print(len(paragraphs))
-    for p in paragraphs:
+    for p in paragraphs[1:]:
         relative_link = p.a["href"]
         title, script, date_info = get_script(relative_link)
         if not script:
@@ -161,7 +161,7 @@ if __name__ == "__main__":
             # sentiments = [( "this is a test.", [{'love': 0.12345, 'sadness': 0.123}])]
             ## end Test
             # insert into the database
-            for sentence, sentiment in sentiments[1:]:
+            for sentence, sentiment in sentiments: # starting from 0 causes error
                 print(sentiment)
                 sadness_score = float(
                     [s["score"] for s in sentiment[0] if s["label"] == "sadness"][0]
