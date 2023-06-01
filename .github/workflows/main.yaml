@@ -73,12 +73,12 @@ jobs:
 #        with:
 #          args: patch deployment -n ${{ steps.set_deployment_info.outputs.DEPLOY_NS }} ${{ steps.set_deployment_info.outputs.DEPLOYMENT_NAME }} -p ${{ steps.set_deployment_info.outputs.PATCH_STR }}
 
-      - name: Build and tag Docker cron image
-        run: |
-          docker build -t ${{ vars.ECR_CRON_REPO_URL }}:latest ./cronjob
-          docker tag ${{ vars.ECR_CRON_REPO_URL }}:latest ${{ steps.login-ecr.outputs.registry }}/lwt-ecr-dev-cron:latest
-
-      - name: Push Docker cron image to Amazon ECR
-        run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/lwt-ecr-dev-cron:latest
+#      - name: Build and tag Docker cron image
+#        run: |
+#          docker build -t ${{ vars.ECR_CRON_REPO_URL }}:latest ./cronjob
+#          docker tag ${{ vars.ECR_CRON_REPO_URL }}:latest ${{ steps.login-ecr.outputs.registry }}/lwt-ecr-dev-cron:latest
+#
+#      - name: Push Docker cron image to Amazon ECR
+#        run: |
+#          docker push ${{ steps.login-ecr.outputs.registry }}/lwt-ecr-dev-cron:latest
 
