@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, text
-from typing import List
+from typing import Union
+from typing_extensions import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
 import os
 app = FastAPI()
 
@@ -41,9 +43,295 @@ def main():
     return RedirectResponse(url="/docs/")
 
 
-@app.get("/data")
+@app.get("/data", description="Get all data")
 def show_records(db: Session = Depends(get_db)):
+    """
+        Retrieve all results in database
+
+        Returns:
+        - The results for all movies
+        """
     sql_statement = text("""SELECT id, title, date_info, sentiment, sentence, sadness_score, joy_score, love_score, anger_score, fear_score, surprise_score FROM lwtdemo.script_records;""")
+    records = db.execute(sql_statement)
+    rows = [row._asdict() for row in records]
+    return rows
+
+
+@app.get("/data/title/{title_id}", description="Get results of a script by script title")
+def show_records(title_id: str, db: Session = Depends(get_db)):
+    """
+        Retrieve filtered results by title of movie.
+
+        - **title_id**: Title of movie as shown via /data route. Hint: use full title with .html for now
+
+        Returns:
+        - The results for movie script
+        """
+    text_statement = f"""SELECT id, 
+                            title, 
+                            date_info, 
+                            sentiment, 
+                            sentence, 
+                            sadness_score, 
+                            joy_score, 
+                            love_score, 
+                            anger_score, 
+                            fear_score,
+                            surprise_score 
+                        FROM lwtdemo.script_records 
+                        WHERE title = '{title_id}';"""
+    sql_statement = text(text_statement)
+    records = db.execute(sql_statement)
+    rows = [row._asdict() for row in records]
+    return rows
+
+
+@app.get("/data/joy", description="Get filtered results for joy. Optional query params: "
+                                  "'gte' (greater than or equal to) score or 'lte' (less than or equal to) score: float."
+                                  "One, neither, but not both are accepted.")
+def show_records(gte: float = None,
+                 lte: float = None,
+                 db: Session = Depends(get_db)):
+    """
+        Retrieve filtered results for joy.
+
+        - **gte**: An optional decimal parameter for joy scores greater than or equal to value i.e. 0.12.
+        - **lte**: An optional decimal parameter for joy scores less than or equal to value i.e. 0.12.
+
+        Only one of gte or lte should be provided.
+
+        Returns:
+        - The results for joy score
+        """
+    if gte and lte:
+        raise HTTPException(status_code=400, detail="One parameter of gte or lte should be provided, not both")
+    elif gte and not lte:
+        where_statement = f"""WHERE joy_score >= {gte}"""
+    elif lte and not gte:
+        where_statement = f"""WHERE joy_score <= {lte}"""
+    else:
+        where_statement = ""
+    text_statement = f"""SELECT id, 
+                               title, 
+                               date_info, 
+                               sentence, 
+                               sadness_score, 
+                               joy_score, 
+                               love_score, 
+                               anger_score, 
+                               fear_score,
+                               surprise_score 
+                           FROM lwtdemo.script_records """ + where_statement
+    sql_statement = text(text_statement)
+    records = db.execute(sql_statement)
+    rows = [row._asdict() for row in records]
+    return rows
+
+
+@app.get("/data/anger", description="Get filtered results for anger. Optional query params: "
+                                  "'gte' (greater than or equal to) score or 'lte' (less than or equal to) score: float."
+                                  "One, neither, but not both are accepted.")
+def show_records_anger(gte: float = None,
+                 lte: float = None,
+                 db: Session = Depends(get_db)):
+    """
+        Retrieve filtered results for anger.
+
+        - **gte**: An optional decimal parameter for scores greater than or equal to value i.e. 0.12.
+        - **lte**: An optional decimal parameter for scores less than or equal to value i.e. 0.12.
+
+        Only one of gte or lte should be provided.
+
+        Returns:
+        - The results for anger score
+        """
+    if gte and lte:
+        raise HTTPException(status_code=400, detail="One parameter of gte or lte should be provided, not both")
+    elif gte and not lte:
+        where_statement = f"""WHERE anger_score >= {gte}"""
+    elif lte and not gte:
+        where_statement = f"""WHERE anger_score <= {lte}"""
+    else:
+        where_statement = ""
+    text_statement = f"""SELECT id, 
+                               title, 
+                               date_info, 
+                               sentence, 
+                               sadness_score, 
+                               joy_score, 
+                               love_score, 
+                               anger_score, 
+                               fear_score,
+                               surprise_score 
+                           FROM lwtdemo.script_records """ + where_statement
+    sql_statement = text(text_statement)
+    records = db.execute(sql_statement)
+    rows = [row._asdict() for row in records]
+    return rows
+
+
+@app.get("/data/love", description="Get filtered results for love. Optional query params: "
+                                  "'gte' (greater than or equal to) score or 'lte' (less than or equal to) score: float."
+                                  "One, neither, but not both are accepted.")
+def show_records_love(gte: float = None,
+                     lte: float = None,
+                     db: Session = Depends(get_db)):
+    """
+        Retrieve filtered results for love.
+
+        - **gte**: An optional decimal parameter for scores greater than or equal to value i.e. 0.12.
+        - **lte**: An optional decimal parameter for scores less than or equal to value i.e. 0.12.
+
+        Only one of gte or lte should be provided.
+
+        Returns:
+        - The results for love score
+        """
+    if gte and lte:
+        raise HTTPException(status_code=400, detail="One parameter of gte or lte should be provided, not both")
+    elif gte and not lte:
+        where_statement = f"""WHERE love_score >= {gte}"""
+    elif lte and not gte:
+        where_statement = f"""WHERE love_score <= {lte}"""
+    else:
+        where_statement = ""
+    text_statement = f"""SELECT id, 
+                               title, 
+                               date_info, 
+                               sentence, 
+                               sadness_score, 
+                               joy_score, 
+                               love_score, 
+                               anger_score, 
+                               fear_score,
+                               surprise_score 
+                           FROM lwtdemo.script_records """ + where_statement
+    sql_statement = text(text_statement)
+    records = db.execute(sql_statement)
+    rows = [row._asdict() for row in records]
+    return rows
+
+
+@app.get("/data/fear", description="Get filtered results for fear. Optional query params: "
+                                  "'gte' (greater than or equal to) score or 'lte' (less than or equal to) score: float."
+                                  "One, neither, but not both are accepted.")
+def show_records_fear(gte: float = None,
+                     lte: float = None,
+                     db: Session = Depends(get_db)):
+    """
+        Retrieve filtered results for fear.
+
+        - **gte**: An optional decimal parameter for scores greater than or equal to value i.e. 0.12.
+        - **lte**: An optional decimal parameter for scores less than or equal to value i.e. 0.12.
+
+        Only one of gte or lte should be provided.
+
+        Returns:
+        - The results for fear score
+        """
+    if gte and lte:
+        raise HTTPException(status_code=400, detail="One parameter of gte or lte should be provided, not both")
+    elif gte and not lte:
+        where_statement = f"""WHERE fear_score >= {gte}"""
+    elif lte and not gte:
+        where_statement = f"""WHERE fear_score <= {lte}"""
+    else:
+        where_statement = ""
+    text_statement = f"""SELECT id, 
+                               title, 
+                               date_info, 
+                               sentence, 
+                               sadness_score, 
+                               joy_score, 
+                               love_score, 
+                               anger_score, 
+                               fear_score,
+                               surprise_score 
+                           FROM lwtdemo.script_records """ + where_statement
+    sql_statement = text(text_statement)
+    records = db.execute(sql_statement)
+    rows = [row._asdict() for row in records]
+    return rows
+
+
+@app.get("/data/surprise", description="Get filtered results for surprise. Optional query params: "
+                                  "'gte' (greater than or equal to) score or 'lte' (less than or equal to) score: float."
+                                  "One, neither, but not both are accepted.")
+def show_records_surprise(gte: float = None,
+                     lte: float = None,
+                     db: Session = Depends(get_db)):
+    """
+        Retrieve filtered results for surprise.
+
+        - **gte**: An optional decimal parameter for scores greater than or equal to value i.e. 0.12.
+        - **lte**: An optional decimal parameter for scores less than or equal to value i.e. 0.12.
+
+        Only one of gte or lte should be provided.
+
+        Returns:
+        - The results for surprise score
+        """
+    if gte and lte:
+        raise HTTPException(status_code=400, detail="One parameter of gte or lte should be provided, not both")
+    elif gte and not lte:
+        where_statement = f"""WHERE surprise_score >= {gte}"""
+    elif lte and not gte:
+        where_statement = f"""WHERE surprise_score <= {lte}"""
+    else:
+        where_statement = ""
+    text_statement = f"""SELECT id, 
+                               title, 
+                               date_info, 
+                               sentence, 
+                               sadness_score, 
+                               joy_score, 
+                               love_score, 
+                               anger_score, 
+                               fear_score,
+                               surprise_score 
+                           FROM lwtdemo.script_records """ + where_statement
+    sql_statement = text(text_statement)
+    records = db.execute(sql_statement)
+    rows = [row._asdict() for row in records]
+    return rows
+
+@app.get("/data/sadness", description="Get filtered results for sadness. Optional query params: "
+                                  "'gte' (greater than or equal to) score or 'lte' (less than or equal to) score: float."
+                                  "One, neither, but not both are accepted.")
+def show_records_sadness(gte: float = None,
+                         lte: float = None,
+                         db: Session = Depends(get_db)):
+    """
+        Retrieve filtered results for sadness.
+
+        - **gte**: An optional decimal parameter for scores greater than or equal to value i.e. 0.12.
+        - **lte**: An optional decimal parameter for scores less than or equal to value i.e. 0.12.
+
+        Only one of gte or lte should be provided.
+
+        Returns:
+        - The results for sadness
+        """
+    if gte and lte:
+        raise HTTPException(status_code=400, detail="One parameter of gte or lte should be provided, not both")
+    elif gte and not lte:
+        where_statement = f"""WHERE sadness_score >= {gte}"""
+    elif lte and not gte:
+        where_statement = f"""WHERE sadness_score <= {lte}"""
+    else:
+        where_statement = ""
+    text_statement = f"""SELECT id, 
+                               title, 
+                               date_info, 
+                               sentence, 
+                               sadness_score, 
+                               joy_score, 
+                               love_score, 
+                               anger_score, 
+                               fear_score,
+                               surprise_score 
+                           FROM lwtdemo.script_records """ + where_statement
+    sql_statement = text(text_statement)
     records = db.execute(sql_statement)
     rows = [row._asdict() for row in records]
     return rows
