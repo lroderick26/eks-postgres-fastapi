@@ -48,7 +48,7 @@ spec:
     spec:
       containers:
         - name: lwtdemo-job
-          image: 781127853046.dkr.ecr.us-west-1.amazonaws.com/lwt-ecr-dev-cron:latest
+          image: your-account-id.dkr.ecr.us-west-1.amazonaws.com/lwt-ecr-dev-cron:latest
           command: ["python", "cronjob.py"]
           env:
             - name: POSTGRES_URI
