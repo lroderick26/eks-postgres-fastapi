@@ -2,17 +2,19 @@ from sqlalchemy import create_engine, text
 from typing import Union
 from typing_extensions import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 
 import os
-app = FastAPI()
 
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +23,8 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=True,
 )
+current_directory = os.path.dirname(__file__)
+templates = Jinja2Templates(directory=current_directory+"/templates")
 
 SQLALCHEMY_DATABASE_URL = os.getenv("POSTGRES_URI")
 
@@ -84,6 +88,65 @@ def show_records(title_id: str, db: Session = Depends(get_db)):
     records = db.execute(sql_statement)
     rows = [row._asdict() for row in records]
     return rows
+
+
+@app.get("/data/summary", description="Get overall summary of the records in the system.")
+def show_summary_records(db: Session = Depends(get_db)):
+    """
+        Returns:
+        - The summarized results for records in the scripts table
+        """
+    text_statement = """SELECT CONCAT(ROUND(AVG(sadness_score)*100,2),'%') as avg_sadness, 
+                    CONCAT(ROUND(AVG(joy_score)*100,2),'%') as avg_joy, 
+                    CONCAT(ROUND(AVG(love_score)*100,2),'%') as avg_love, 
+                    CONCAT(ROUND(AVG(anger_score)*100,2),'%') as avg_anger, 
+                    CONCAT(ROUND(AVG(fear_score)*100,2),'%') as avg_fear, 
+                    CONCAT(ROUND(AVG(surprise_score)*100,2),'%') as avg_surprise, 
+                    COUNT(*) AS total_count, 
+                    COUNT(DISTINCT title) AS distinct_record_count
+                    from lwtdemo.script_records;"""
+    sql_statement = text(text_statement)
+    records = db.execute(sql_statement)
+    rows = [row._asdict() for row in records]
+    return rows
+
+
+
+@app.get("/data/summary_year", description="Get overall summary of the records in the system by year.")
+def show_summary_records(db: Session = Depends(get_db)):
+    """
+        Returns:
+        - The summarized results for records in the scripts table by year
+        """
+    text_statement = """SELECT CONCAT(ROUND(AVG(sadness_score)*100,2),'%') as avg_sadness, 
+                    CONCAT(ROUND(AVG(joy_score)*100,2),'%') as avg_joy, 
+                    CONCAT(ROUND(AVG(love_score)*100,2),'%') as avg_love, 
+                    CONCAT(ROUND(AVG(anger_score)*100,2),'%') as avg_anger, 
+                    CONCAT(ROUND(AVG(fear_score)*100,2),'%') as avg_fear, 
+                    CONCAT(ROUND(AVG(surprise_score)*100,2),'%') as avg_surprise, 
+                    COUNT(*) AS total_count, 
+                    COUNT(DISTINCT title) AS distinct_record_count,
+                    date_info_corr 
+                    FROM lwtdemo.script_records
+                    GROUP BY date_info_corr 
+                    ORDER BY date_info_corr;"""
+    sql_statement = text(text_statement)
+    records = db.execute(sql_statement)
+    rows = [row._asdict() for row in records]
+    return rows
+
+
+@app.get("/data/charts", response_class=HTMLResponse)
+async def upload_file(request: Request,
+                      data: list = Depends(show_summary_records)):
+    chart_data_for_google_charts = []
+    header_data = ["Year", "Sadness", "Joy", "Love", "Anger", "Fear", "Surprise"]
+    chart_data_for_google_charts.append(header_data)
+    for row in data:
+        row_as_list = [row['date_info_corr'], row['avg_sadness'], row['avg_joy'], row['avg_love'], row['avg_anger'], row['avg_fear'], row['avg_surprise']]
+        chart_data_for_google_charts.append(row_as_list)
+    return templates.TemplateResponse("charts.html", {"request": request, "charts": chart_data_for_google_charts})
+
 
 
 @app.get("/data/joy", description="Get filtered results for joy. Optional query params: "
