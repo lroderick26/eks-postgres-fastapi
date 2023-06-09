@@ -119,11 +119,11 @@ def show_summary_records(db: Session = Depends(get_db)):
         - The summarized results for records in the scripts table by year
         """
     text_statement = """SELECT CONCAT(ROUND(AVG(sadness_score)*100,2),'%') as avg_sadness, 
-                    CONCAT(ROUND(AVG(joy_score)*100,2),'%') as avg_joy, 
-                    CONCAT(ROUND(AVG(love_score)*100,2),'%') as avg_love, 
-                    CONCAT(ROUND(AVG(anger_score)*100,2),'%') as avg_anger, 
-                    CONCAT(ROUND(AVG(fear_score)*100,2),'%') as avg_fear, 
-                    CONCAT(ROUND(AVG(surprise_score)*100,2),'%') as avg_surprise, 
+                    ROUND(AVG(joy_score)*100,2) as avg_joy, 
+                    ROUND(AVG(love_score)*100,2) as avg_love, 
+                    ROUND(AVG(anger_score)*100,2) as avg_anger, 
+                    ROUND(AVG(fear_score)*100,2) as avg_fear, 
+                    ROUND(AVG(surprise_score)*100,2) as avg_surprise, 
                     COUNT(*) AS total_count, 
                     COUNT(DISTINCT title) AS distinct_record_count,
                     date_info_corr 
