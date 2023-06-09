@@ -16,7 +16,7 @@
       google.charts.setOnLoadCallback(drawChart);
 
       function drawChart() {
-        var data = google.visualization.arrayToDataTable({charts});
+        var data = google.visualization.arrayToDataTable({{ charts }});
 
         var options = {
           title: 'Company Performance',
