@@ -128,7 +128,7 @@ def show_summary_records(db: Session = Depends(get_db)):
                     COUNT(DISTINCT title) AS distinct_record_count,
                     date_info_corr 
                     FROM lwtdemo.script_records
-                    GROUP BY date_info_corr s
+                    GROUP BY date_info_corr
                     ORDER BY date_info_corr;"""
     sql_statement = text(text_statement)
     records = db.execute(sql_statement)
