@@ -8,6 +8,10 @@ Add your aws credentials into GitHub secrets in order to be able to access them 
 ### ECR Repository
 You'll need to have created an ECR repository to push the image you create to
 
+### After a push to the workflow
+
+kubectl patch deployment -n lwtdemo fastapi-deployment -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"last_deploy_date\":\"202306100749\"}}}}}"
+
 ## Local Testing/Running
 You can test things locally using docker compose. Be sure you've installed it locally before getting things going.
 
@@ -18,3 +22,4 @@ You can test things locally using docker compose. Be sure you've installed it lo
 2. Run the docker-compose up command to bring up the api and the db
 
 `docker-compose up -d --build`
+

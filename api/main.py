@@ -119,11 +119,11 @@ def show_summary_records(db: Session = Depends(get_db)):
         - The summarized results for records in the scripts table by year
         """
     text_statement = """SELECT ROUND(AVG(sadness_score)*100,2)::float as avg_sadness, 
-                    ROUND(AVG(joy_score)*100,2)::float as avg_joy, 
-                    ROUND(AVG(love_score)*100,2)::float as avg_love, 
-                    ROUND(AVG(anger_score)*100,2)::float as avg_anger, 
-                    ROUND(AVG(fear_score)*100,2)::float as avg_fear, 
-                    ROUND(AVG(surprise_score)*100,2)::float as avg_surprise, 
+                    ROUND(AVG(joy_score),2)::float as avg_joy, 
+                    ROUND(AVG(love_score),2)::float as avg_love, 
+                    ROUND(AVG(anger_score),2)::float as avg_anger, 
+                    ROUND(AVG(fear_score),2)::float as avg_fear, 
+                    ROUND(AVG(surprise_score),2)::float as avg_surprise, 
                     COUNT(*) AS total_count, 
                     COUNT(DISTINCT title) AS distinct_record_count,
                     date_info_corr 
@@ -140,8 +140,6 @@ def show_summary_records(db: Session = Depends(get_db)):
 async def upload_file(request: Request,
                       data: list = Depends(show_summary_records)):
     chart_data_for_google_charts = []
-    header_data = ["Year", "Sadness", "Joy", "Love", "Anger", "Fear", "Surprise"]
-    chart_data_for_google_charts.append(header_data)
     for row in data:
         row_as_list = [row['date_info_corr'], row['avg_sadness'], row['avg_joy'], row['avg_love'], row['avg_anger'], row['avg_fear'], row['avg_surprise']]
         chart_data_for_google_charts.append(row_as_list)

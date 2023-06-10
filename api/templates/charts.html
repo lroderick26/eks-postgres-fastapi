@@ -12,6 +12,39 @@
   <head>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
+    google.charts.load('current', {packages: ['corechart', 'line']});
+    google.charts.setOnLoadCallback(drawBasic);
+
+    function drawBasic() {
+
+      var data = new google.visualization.DataTable();
+      data.addColumn('number', 'Year');
+      data.addColumn('number', 'Sadness');
+      data.addColumn('number', 'Joy');
+      data.addColumn('number', 'Love');
+      data.addColumn('number', 'Anger');
+      data.addColumn('number', 'Fear');
+      data.addColumn('number', 'Surprise');
+
+
+      data.addRows({{ charts }});
+
+      var options = {
+        hAxis: {
+          title: 'Year',
+          format: '####'
+        },
+        vAxis: {
+          title: 'Sentiment Score',
+          format: '##.##%',
+        },
+        title: 'Average Sentiments by Year'
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+
+      chart.draw(data, options);
+    }
       google.charts.load('current', {'packages':['corechart']});
       google.charts.setOnLoadCallback(drawChart);
 
