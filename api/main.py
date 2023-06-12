@@ -118,7 +118,7 @@ def show_summary_records(db: Session = Depends(get_db)):
         Returns:
         - The summarized results for records in the scripts table by year
         """
-    text_statement = """SELECT ROUND(AVG(sadness_score)*100,2)::float as avg_sadness, 
+    text_statement = """SELECT ROUND(AVG(sadness_score),2)::float as avg_sadness, 
                     ROUND(AVG(joy_score),2)::float as avg_joy, 
                     ROUND(AVG(love_score),2)::float as avg_love, 
                     ROUND(AVG(anger_score),2)::float as avg_anger, 
